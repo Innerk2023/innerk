@@ -186,71 +186,103 @@ function initFireworks() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
+    // Global particles array shared by all fireworks
+    let allParticles = [];
+    let animationFrameId = null;
+    let isAnimating = false;
+    
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     });
     
+    // Single animation loop that manages all particles
+    function animate() {
+        // Clear canvas before each frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Filter out dead particles
+        allParticles = allParticles.filter(p => p.life > 0);
+        
+        // Update and draw all alive particles
+        allParticles.forEach(p => {
+            // Update particle physics
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1; // Gravity
+            p.life -= p.decay; // Life decay
+            
+            // Draw particle with opacity based on life
+            ctx.globalAlpha = Math.max(0, p.life);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(Math.floor(p.x / 5) * 5, Math.floor(p.y / 5) * 5, 5, 5);
+        });
+        
+        // Reset global alpha
+        ctx.globalAlpha = 1;
+        
+        // Continue animation if particles exist
+        if (allParticles.length > 0) {
+            animationFrameId = requestAnimationFrame(animate);
+        } else {
+            // Stop animation when no particles left
+            isAnimating = false;
+            animationFrameId = null;
+        }
+    }
+    
+    // Start animation loop if not already running
+    function startAnimation() {
+        if (!isAnimating) {
+            isAnimating = true;
+            animate();
+        }
+    }
+    
     window.launchFireworks = function() {
         const isMobile = window.innerWidth < 768;
         const fireworkCount = isMobile ? 2 : 3;
         
+        // Limit total particles to prevent accumulation
+        const maxParticles = isMobile ? 150 : 300;
+        
         for (let i = 0; i < fireworkCount; i++) {
             setTimeout(() => {
-                createFirework(ctx, canvas.width, canvas.height);
+                // Check particle limit before creating new firework
+                if (allParticles.length < maxParticles) {
+                    createFirework(canvas.width, canvas.height, allParticles, maxParticles);
+                    startAnimation();
+                }
             }, i * 300);
         }
     };
-    
-    setInterval(() => {
-        launchFireworks();
-    }, 15000);
 }
 
-function createFirework(ctx, width, height) {
+function createFirework(width, height, allParticles, maxParticles) {
     const x = Math.random() * width;
     const y = Math.random() * height * 0.5;
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD700'];
-    const particleCount = window.innerWidth < 768 ? 30 : 50;
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 30 : 50;
     
-    const particles = [];
-    for (let i = 0; i < particleCount; i++) {
-        const angle = (Math.PI * 2 * i) / particleCount;
-        particles.push({
+    // Calculate how many particles we can actually add
+    const availableSlots = maxParticles - allParticles.length;
+    const actualParticleCount = Math.min(particleCount, availableSlots);
+    
+    for (let i = 0; i < actualParticleCount; i++) {
+        const angle = (Math.PI * 2 * i) / actualParticleCount;
+        const velocity = Math.random() * 3 + 2;
+        
+        allParticles.push({
             x: x,
             y: y,
-            vx: Math.cos(angle) * (Math.random() * 3 + 2),
-            vy: Math.sin(angle) * (Math.random() * 3 + 2),
+            vx: Math.cos(angle) * velocity,
+            vy: Math.sin(angle) * velocity,
             color: colors[Math.floor(Math.random() * colors.length)],
-            life: 1
+            life: 1.0,
+            decay: 0.015 // Particles will live for ~67 frames (~2-3 seconds at 60fps)
         });
     }
-    
-    function animate() {
-        particles.forEach((p, index) => {
-            if (p.life <= 0) {
-                particles.splice(index, 1);
-                return;
-            }
-            
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.life;
-            ctx.fillRect(Math.floor(p.x / 5) * 5, Math.floor(p.y / 5) * 5, 5, 5);
-            
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.1;
-            p.life -= 0.02;
-        });
-        
-        if (particles.length > 0) {
-            requestAnimationFrame(animate);
-        } else {
-            ctx.globalAlpha = 1;
-        }
-    }
-    
-    animate();
 }
 
 function initPortalEffect() {
