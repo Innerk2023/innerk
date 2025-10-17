@@ -6,25 +6,30 @@ let photosViewed = new Set();
 let hasShownWelcomeTip = localStorage.getItem('chenle_welcome_tip_shown') === 'true';
 
 document.addEventListener('DOMContentLoaded', function() {
-    initLoadingScreen();
-    initAudioContext();
-    init3DFloatingBlocks();
-    initFireworks();
-    initPortalEffect();
-    initSoundToggle();
-    initBlessingGenerator();
-    initCountdown();
-    initMiningGame();
-    initCakeBuilding();
-    initVillagerNPC();
-    initBlockInteraction();
-    initPhotoPixelate();
-    initPhotoGestures();
-    initHiddenCreeper();
-    initPixelCake();
-    initPhotoModal();
-    
-    console.log('%c🎉 生日快乐，刘宸乐！🎉', 'font-size: 30px; color: #FFD700; text-shadow: 2px 2px 4px #000;');
+    try {
+        initLoadingScreen();
+        initAudioContext();
+        init3DFloatingBlocks();
+        initFireworks();
+        initPortalEffect();
+        initSoundToggle();
+        initBlessingGenerator();
+        initCountdown();
+        initMiningGame();
+        initCakeBuilding();
+        initVillagerNPC();
+        initBlockInteraction();
+        initPhotoPixelate();
+        initPhotoGestures();
+        initHiddenCreeper();
+        initPixelCake();
+        initPhotoModal();
+        
+        console.log('%c🎉 生日快乐，刘宸乐！🎉', 'font-size: 30px; color: #FFD700; text-shadow: 2px 2px 4px #000;');
+        console.log('%c✅ 所有功能已成功初始化', 'font-size: 16px; color: #4CAF50;');
+    } catch (error) {
+        console.error('❌ 初始化错误:', error);
+    }
 });
 
 function initLoadingScreen() {
@@ -190,6 +195,7 @@ function initFireworks() {
     let allParticles = [];
     let animationFrameId = null;
     let isAnimating = false;
+    let forceStopTimeout = null;
     
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -226,8 +232,7 @@ function initFireworks() {
             animationFrameId = requestAnimationFrame(animate);
         } else {
             // Stop animation when no particles left
-            isAnimating = false;
-            animationFrameId = null;
+            stopAnimation();
         }
     }
     
@@ -236,7 +241,36 @@ function initFireworks() {
         if (!isAnimating) {
             isAnimating = true;
             animate();
+            
+            // Force stop after 5 seconds to ensure cleanup (for both desktop and mobile)
+            if (forceStopTimeout) {
+                clearTimeout(forceStopTimeout);
+            }
+            forceStopTimeout = setTimeout(() => {
+                forceStopAnimation();
+            }, 5000);
         }
+    }
+    
+    // Stop animation normally
+    function stopAnimation() {
+        isAnimating = false;
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+        // Final cleanup - ensure canvas is completely clear
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (forceStopTimeout) {
+            clearTimeout(forceStopTimeout);
+            forceStopTimeout = null;
+        }
+    }
+    
+    // Force stop animation and clear everything
+    function forceStopAnimation() {
+        allParticles = [];
+        stopAnimation();
     }
     
     window.launchFireworks = function() {
@@ -280,7 +314,7 @@ function createFirework(width, height, allParticles, maxParticles) {
             vy: Math.sin(angle) * velocity,
             color: colors[Math.floor(Math.random() * colors.length)],
             life: 1.0,
-            decay: 0.015 // Particles will live for ~67 frames (~2-3 seconds at 60fps)
+            decay: 0.025 // Increased decay rate - particles will live for ~40 frames (~1.5-2 seconds at 60fps)
         });
     }
 }
@@ -325,37 +359,63 @@ function initPortalEffect() {
 }
 
 function initPhotoPixelate() {
-    const photo = document.getElementById('mainPhoto');
-    const btn = document.getElementById('pixelateBtn');
-    let isPixelated = false;
-    
-    btn.addEventListener('click', () => {
-        isPixelated = !isPixelated;
-        photo.classList.toggle('pixelated');
-        btn.textContent = isPixelated ? '还原照片' : '像素化';
-        playSound('block');
+    try {
+        const photo = document.getElementById('mainPhoto');
+        const btn = document.getElementById('pixelateBtn');
         
-        if (isPixelated) {
-            unlockAchievement('pixelate', '🎨 像素大师', '发现像素化照片效果！');
+        if (!photo || !btn) {
+            console.error('照片像素化功能：缺少必要元素');
+            return;
         }
-    });
-    
-    const prevBtn = document.getElementById('photoPrev');
-    const nextBtn = document.getElementById('photoNext');
-    
-    prevBtn.addEventListener('click', () => {
-        playSound('portal');
-        launchFireworks();
-        photosViewed.add('prev');
-        checkPhotoExplorer();
-    });
-    
-    nextBtn.addEventListener('click', () => {
-        playSound('portal');
-        launchFireworks();
-        photosViewed.add('next');
-        checkPhotoExplorer();
-    });
+        
+        let isPixelated = false;
+        
+        btn.addEventListener('click', () => {
+            try {
+                isPixelated = !isPixelated;
+                photo.classList.toggle('pixelated');
+                btn.textContent = isPixelated ? '还原照片' : '像素化';
+                playSound('block');
+                
+                if (isPixelated) {
+                    unlockAchievement('pixelate', '🎨 像素大师', '发现像素化照片效果！');
+                }
+            } catch (error) {
+                console.error('照片像素化功能错误:', error);
+            }
+        });
+        
+        const prevBtn = document.getElementById('photoPrev');
+        const nextBtn = document.getElementById('photoNext');
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                try {
+                    playSound('portal');
+                    launchFireworks();
+                    photosViewed.add('prev');
+                    checkPhotoExplorer();
+                } catch (error) {
+                    console.error('照片前一张功能错误:', error);
+                }
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                try {
+                    playSound('portal');
+                    launchFireworks();
+                    photosViewed.add('next');
+                    checkPhotoExplorer();
+                } catch (error) {
+                    console.error('照片下一张功能错误:', error);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('初始化照片像素化功能错误:', error);
+    }
 }
 
 function checkPhotoExplorer() {
@@ -434,45 +494,58 @@ function closePhotoModal() {
 }
 
 function initHiddenCreeper() {
-    const creeper = document.getElementById('hiddenCreeper');
-    
-    const positions = [
-        { top: '80px', left: '20px' },
-        { top: '80px', right: '100px' },
-        { bottom: '150px', left: '30px' },
-        { bottom: '150px', right: '30px' },
-        { top: '300px', left: '15px' },
-        { top: '300px', right: '15px' }
-    ];
-    
-    const randomPos = positions[Math.floor(Math.random() * positions.length)];
-    Object.keys(randomPos).forEach(key => {
-        creeper.style[key] = randomPos[key];
-    });
-    
-    creeper.addEventListener('click', () => {
-        playSound('creeper');
-        createMegaExplosion(creeper);
-        unlockAchievement('hidden_creeper', '💚 发现了害羞的苦力怕！', '你找到了隐藏的彩蛋！');
+    try {
+        const creeper = document.getElementById('hiddenCreeper');
         
-        creeper.style.animation = 'creeperCelebrate 0.5s ease-out';
-        setTimeout(() => {
-            creeper.style.animation = '';
-        }, 500);
-        
-        launchFireworks();
-        launchFireworks();
-    });
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes creeperCelebrate {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(-15deg) scale(1.2); }
-            75% { transform: rotate(15deg) scale(1.2); }
+        if (!creeper) {
+            console.error('苦力怕彩蛋功能：缺少必要元素');
+            return;
         }
-    `;
-    document.head.appendChild(style);
+        
+        const positions = [
+            { top: '80px', left: '20px' },
+            { top: '80px', right: '100px' },
+            { bottom: '150px', left: '30px' },
+            { bottom: '150px', right: '30px' },
+            { top: '300px', left: '15px' },
+            { top: '300px', right: '15px' }
+        ];
+        
+        const randomPos = positions[Math.floor(Math.random() * positions.length)];
+        Object.keys(randomPos).forEach(key => {
+            creeper.style[key] = randomPos[key];
+        });
+        
+        creeper.addEventListener('click', () => {
+            try {
+                playSound('creeper');
+                createMegaExplosion(creeper);
+                unlockAchievement('hidden_creeper', '💚 发现了害羞的苦力怕！', '你找到了隐藏的彩蛋！');
+                
+                creeper.style.animation = 'creeperCelebrate 0.5s ease-out';
+                setTimeout(() => {
+                    creeper.style.animation = '';
+                }, 500);
+                
+                launchFireworks();
+                launchFireworks();
+            } catch (error) {
+                console.error('苦力怕彩蛋功能错误:', error);
+            }
+        });
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes creeperCelebrate {
+                0%, 100% { transform: rotate(0deg) scale(1); }
+                25% { transform: rotate(-15deg) scale(1.2); }
+                75% { transform: rotate(15deg) scale(1.2); }
+            }
+        `;
+        document.head.appendChild(style);
+    } catch (error) {
+        console.error('初始化苦力怕彩蛋功能错误:', error);
+    }
 }
 
 function createMegaExplosion(element) {
@@ -529,34 +602,48 @@ function createMegaExplosion(element) {
 }
 
 function initPixelCake() {
-    const blowBtn = document.getElementById('blowCandleBtn');
-    const candle = document.getElementById('cakeCandle');
-    const flame = candle.querySelector('.candle-flame');
-    const hint = document.querySelector('.candle-hint');
-    let isBlown = false;
-    
-    blowBtn.addEventListener('click', () => {
-        if (isBlown) {
-            flame.classList.remove('blown');
-            isBlown = false;
-            blowBtn.textContent = '吹蜡烛 🎂';
-            hint.classList.remove('hidden');
-        } else {
-            flame.classList.add('blown');
-            isBlown = true;
-            blowBtn.textContent = '点燃蜡烛 🔥';
-            hint.classList.add('hidden');
-            
-            playSound('experience');
-            
-            setTimeout(() => {
-                launchFireworks();
-                launchFireworks();
-                createConfetti();
-                unlockAchievement('cake_blown', '🎂 许愿成功', '吹灭了生日蜡烛！');
-            }, 300);
+    try {
+        const blowBtn = document.getElementById('blowCandleBtn');
+        const candle = document.getElementById('cakeCandle');
+        const flame = candle.querySelector('.candle-flame');
+        const hint = document.querySelector('.candle-hint');
+        
+        if (!blowBtn || !candle || !flame || !hint) {
+            console.error('吹蜡烛功能：缺少必要元素');
+            return;
         }
-    });
+        
+        let isBlown = false;
+        
+        blowBtn.addEventListener('click', () => {
+            try {
+                if (isBlown) {
+                    flame.classList.remove('blown');
+                    isBlown = false;
+                    blowBtn.textContent = '吹蜡烛 🎂';
+                    hint.classList.remove('hidden');
+                } else {
+                    flame.classList.add('blown');
+                    isBlown = true;
+                    blowBtn.textContent = '点燃蜡烛 🔥';
+                    hint.classList.add('hidden');
+                    
+                    playSound('experience');
+                    
+                    setTimeout(() => {
+                        launchFireworks();
+                        launchFireworks();
+                        createConfetti();
+                        unlockAchievement('cake_blown', '🎂 许愿成功', '吹灭了生日蜡烛！');
+                    }, 300);
+                }
+            } catch (error) {
+                console.error('吹蜡烛功能错误:', error);
+            }
+        });
+    } catch (error) {
+        console.error('初始化吹蜡烛功能错误:', error);
+    }
 }
 
 function createConfetti() {
@@ -736,12 +823,19 @@ function createExplosion(element) {
 }
 
 function initMiningGame() {
-    const miningArea = document.getElementById('miningArea');
-    const scoreDisplay = document.getElementById('miningScore');
-    const startBtn = document.getElementById('startMining');
-    let score = 0;
-    let gameActive = false;
-    let blockInterval;
+    try {
+        const miningArea = document.getElementById('miningArea');
+        const scoreDisplay = document.getElementById('miningScore');
+        const startBtn = document.getElementById('startMining');
+        
+        if (!miningArea || !scoreDisplay || !startBtn) {
+            console.error('挖方块游戏功能：缺少必要元素');
+            return;
+        }
+        
+        let score = 0;
+        let gameActive = false;
+        let blockInterval;
     
     const blockTypes = [
         { emoji: '🟫', color: '#8D6E63', points: 1, blessing: '挖到了泥土！' },
@@ -833,121 +927,172 @@ function initMiningGame() {
             }
         }, 3000);
     }
+    } catch (error) {
+        console.error('初始化挖方块游戏功能错误:', error);
+    }
 }
 
 function initCakeBuilding() {
-    const cakeDisplay = document.getElementById('cakeDisplay');
-    const cakeBlocks = document.querySelectorAll('.cake-block-btn');
-    const resetBtn = document.getElementById('resetCake');
-    let layers = [];
-    
-    cakeBlocks.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const layerType = btn.dataset.layer;
-            const emoji = btn.textContent;
-            
-            if (layerType === 'candle' && layers.length === 0) {
-                return;
-            }
-            
-            const layer = document.createElement('div');
-            layer.className = 'cake-layer';
-            layer.textContent = emoji;
-            
-            if (layerType === '1') {
-                layer.style.background = 'linear-gradient(135deg, #8D6E63 0%, #6D4C41 100%)';
-            } else if (layerType === '2') {
-                layer.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
-            } else if (layerType === '3') {
-                layer.style.background = 'linear-gradient(135deg, #FF6B6B 0%, #FF4444 100%)';
-            }
-            
-            cakeDisplay.appendChild(layer);
-            layers.push(emoji);
-            
-            playSound('block');
-            
-            if (layers.includes('🕯️') && layers.length >= 4) {
-                setTimeout(() => {
-                    launchFireworks();
-                    unlockAchievement('cake', '🎂 蛋糕建造师', '成功建造了生日蛋糕！');
-                    playSound('experience');
-                }, 300);
+    try {
+        const cakeDisplay = document.getElementById('cakeDisplay');
+        const cakeBlocks = document.querySelectorAll('.cake-block-btn');
+        const resetBtn = document.getElementById('resetCake');
+        
+        if (!cakeDisplay || !cakeBlocks || cakeBlocks.length === 0 || !resetBtn) {
+            console.error('蛋糕建造游戏功能：缺少必要元素');
+            return;
+        }
+        
+        let layers = [];
+        
+        cakeBlocks.forEach(btn => {
+            btn.addEventListener('click', () => {
+                try {
+                    const layerType = btn.dataset.layer;
+                    const emoji = btn.textContent;
+                    
+                    if (layerType === 'candle' && layers.length === 0) {
+                        return;
+                    }
+                    
+                    const layer = document.createElement('div');
+                    layer.className = 'cake-layer';
+                    layer.textContent = emoji;
+                    
+                    if (layerType === '1') {
+                        layer.style.background = 'linear-gradient(135deg, #8D6E63 0%, #6D4C41 100%)';
+                    } else if (layerType === '2') {
+                        layer.style.background = 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
+                    } else if (layerType === '3') {
+                        layer.style.background = 'linear-gradient(135deg, #FF6B6B 0%, #FF4444 100%)';
+                    }
+                    
+                    cakeDisplay.appendChild(layer);
+                    layers.push(emoji);
+                    
+                    playSound('block');
+                    
+                    if (layers.includes('🕯️') && layers.length >= 4) {
+                        setTimeout(() => {
+                            launchFireworks();
+                            unlockAchievement('cake', '🎂 蛋糕建造师', '成功建造了生日蛋糕！');
+                            playSound('experience');
+                        }, 300);
+                    }
+                } catch (error) {
+                    console.error('蛋糕建造功能错误:', error);
+                }
+            });
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            try {
+                cakeDisplay.innerHTML = '';
+                layers = [];
+                playSound('block');
+            } catch (error) {
+                console.error('重置蛋糕功能错误:', error);
             }
         });
-    });
-    
-    resetBtn.addEventListener('click', () => {
-        cakeDisplay.innerHTML = '';
-        layers = [];
-        playSound('block');
-    });
+    } catch (error) {
+        console.error('初始化蛋糕建造游戏功能错误:', error);
+    }
 }
 
 function initVillagerNPC() {
-    const villager = document.getElementById('villagerNpc');
-    const bubble = document.getElementById('villagerBubble');
-    
-    const messages = [
-        '哼哼！生日快乐！🎉',
-        '我有好东西要卖给你...开玩笑的！😄',
-        '5岁啦！真是个好年纪！',
-        '祝你健康成长！💚',
-        '要不要和我做交易？🤝',
-        '听说今天有个小朋友过生日？🎂',
-        '哼哼哼~~~',
-        '你看起来很开心！😊'
-    ];
-    
-    let bubbleTimeout;
-    
-    villager.addEventListener('click', () => {
-        const message = messages[Math.floor(Math.random() * messages.length)];
-        bubble.textContent = message;
-        bubble.classList.add('show');
+    try {
+        const villager = document.getElementById('villagerNpc');
+        const bubble = document.getElementById('villagerBubble');
         
-        playSound('villager');
-        
-        clearTimeout(bubbleTimeout);
-        bubbleTimeout = setTimeout(() => {
-            bubble.classList.remove('show');
-        }, 3000);
-        
-        unlockAchievement('villager', '🧑‍🌾 村民朋友', '和村民NPC互动了！');
-    });
-    
-    setInterval(() => {
-        if (!bubble.classList.contains('show')) {
-            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-            bubble.textContent = randomMessage;
-            bubble.classList.add('show');
-            
-            setTimeout(() => {
-                bubble.classList.remove('show');
-            }, 2000);
+        if (!villager || !bubble) {
+            console.error('村民NPC功能：缺少必要元素');
+            return;
         }
-    }, 20000);
+        
+        const messages = [
+            '哼哼！生日快乐！🎉',
+            '我有好东西要卖给你...开玩笑的！😄',
+            '5岁啦！真是个好年纪！',
+            '祝你健康成长！💚',
+            '要不要和我做交易？🤝',
+            '听说今天有个小朋友过生日？🎂',
+            '哼哼哼~~~',
+            '你看起来很开心！😊'
+        ];
+        
+        let bubbleTimeout;
+        
+        villager.addEventListener('click', () => {
+            try {
+                const message = messages[Math.floor(Math.random() * messages.length)];
+                bubble.textContent = message;
+                bubble.classList.add('show');
+                
+                playSound('villager');
+                
+                clearTimeout(bubbleTimeout);
+                bubbleTimeout = setTimeout(() => {
+                    bubble.classList.remove('show');
+                }, 3000);
+                
+                unlockAchievement('villager', '🧑‍🌾 村民朋友', '和村民NPC互动了！');
+            } catch (error) {
+                console.error('村民NPC点击功能错误:', error);
+            }
+        });
+        
+        setInterval(() => {
+            try {
+                if (!bubble.classList.contains('show')) {
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    bubble.textContent = randomMessage;
+                    bubble.classList.add('show');
+                    
+                    setTimeout(() => {
+                        bubble.classList.remove('show');
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('村民NPC自动消息错误:', error);
+            }
+        }, 20000);
+    } catch (error) {
+        console.error('初始化村民NPC功能错误:', error);
+    }
 }
 
 function initBlockInteraction() {
-    const blocks = document.querySelectorAll('.minecraft-cube');
-    const messageDisplay = document.getElementById('messageDisplay');
-    
-    blocks.forEach(block => {
-        block.addEventListener('click', function() {
-            const message = this.dataset.message;
-            
-            messageDisplay.textContent = message;
-            messageDisplay.classList.add('show');
-            
-            createParticles(this);
-            playSound('block');
-            
-            setTimeout(() => {
-                messageDisplay.classList.remove('show');
-            }, 3000);
+    try {
+        const blocks = document.querySelectorAll('.minecraft-cube');
+        const messageDisplay = document.getElementById('messageDisplay');
+        
+        if (!blocks || blocks.length === 0 || !messageDisplay) {
+            console.error('方块互动功能：缺少必要元素');
+            return;
+        }
+        
+        blocks.forEach(block => {
+            block.addEventListener('click', function() {
+                try {
+                    const message = this.dataset.message;
+                    
+                    messageDisplay.textContent = message;
+                    messageDisplay.classList.add('show');
+                    
+                    createParticles(this);
+                    playSound('block');
+                    
+                    setTimeout(() => {
+                        messageDisplay.classList.remove('show');
+                    }, 3000);
+                } catch (error) {
+                    console.error('方块点击功能错误:', error);
+                }
+            });
         });
-    });
+    } catch (error) {
+        console.error('初始化方块互动功能错误:', error);
+    }
 }
 
 function createParticles(element) {
