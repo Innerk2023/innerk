@@ -5,6 +5,28 @@ let miningBlocksDestroyed = 0;
 let photosViewed = new Set();
 let hasShownWelcomeTip = localStorage.getItem('chenle_welcome_tip_shown') === 'true';
 
+// Toast提示函数
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// 按钮点击反馈函数
+function buttonClickFeedback(button) {
+    button.classList.add('btn-flash');
+    setTimeout(() => {
+        button.classList.remove('btn-flash');
+    }, 300);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     try {
         initLoadingScreen();
@@ -65,10 +87,38 @@ function initLoadingScreen() {
 }
 
 function initAudioContext() {
-    if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
-        const AudioContextClass = AudioContext || webkitAudioContext;
-        audioContext = new AudioContextClass();
-    }
+    // 移动端需要用户交互才能初始化音频
+    const initAudio = () => {
+        if (!audioContext && (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined')) {
+            const AudioContextClass = AudioContext || webkitAudioContext;
+            audioContext = new AudioContextClass();
+
+            // 移动端需要 resume
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            console.log('✅ 音频系统已初始化');
+            showToast('🔊 音效已启用！', 'info');
+        }
+    };
+
+    // 立即尝试初始化
+    initAudio();
+
+    // 同时监听首次用户交互（移动端需要）
+    const userInteractionEvents = ['touchstart', 'touchend', 'click'];
+    const onFirstInteraction = () => {
+        initAudio();
+        // 移除监听器
+        userInteractionEvents.forEach(event => {
+            document.removeEventListener(event, onFirstInteraction);
+        });
+    };
+
+    userInteractionEvents.forEach(event => {
+        document.addEventListener(event, onFirstInteraction, { once: true });
+    });
 }
 
 function playSound(type) {
@@ -145,9 +195,17 @@ function initSoundToggle() {
     soundToggle.addEventListener('click', () => {
         soundEnabled = !soundEnabled;
         soundToggle.classList.toggle('muted');
-        if (soundEnabled && audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
+
+        if (soundEnabled) {
+            showToast('🔊 音效已开启', 'info');
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        } else {
+            showToast('🔇 音效已关闭', 'warning');
         }
+
+        buttonClickFeedback(soundToggle);
     });
 }
 
@@ -362,36 +420,42 @@ function initPhotoPixelate() {
     try {
         const photo = document.getElementById('mainPhoto');
         const btn = document.getElementById('pixelateBtn');
-        
+
         if (!photo || !btn) {
             console.error('照片像素化功能：缺少必要元素');
             return;
         }
-        
+
         let isPixelated = false;
-        
+
         btn.addEventListener('click', () => {
             try {
                 isPixelated = !isPixelated;
                 photo.classList.toggle('pixelated');
                 btn.textContent = isPixelated ? '还原照片' : '像素化';
                 playSound('block');
-                
+                buttonClickFeedback(btn);
+
                 if (isPixelated) {
+                    showToast('🎨 照片已像素化！', 'success');
                     unlockAchievement('pixelate', '🎨 像素大师', '发现像素化照片效果！');
+                } else {
+                    showToast('📷 照片已还原！', 'info');
                 }
             } catch (error) {
                 console.error('照片像素化功能错误:', error);
             }
         });
-        
+
         const prevBtn = document.getElementById('photoPrev');
         const nextBtn = document.getElementById('photoNext');
-        
+
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
                 try {
                     playSound('portal');
+                    buttonClickFeedback(prevBtn);
+                    showToast('◀ 切换照片', 'info');
                     launchFireworks();
                     photosViewed.add('prev');
                     checkPhotoExplorer();
@@ -400,11 +464,13 @@ function initPhotoPixelate() {
                 }
             });
         }
-        
+
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
                 try {
                     playSound('portal');
+                    buttonClickFeedback(nextBtn);
+                    showToast('切换照片 ▶', 'info');
                     launchFireworks();
                     photosViewed.add('next');
                     checkPhotoExplorer();
@@ -520,13 +586,14 @@ function initHiddenCreeper() {
             try {
                 playSound('creeper');
                 createMegaExplosion(creeper);
+                showToast('💚 发现隐藏的苦力怕！', 'success');
                 unlockAchievement('hidden_creeper', '💚 发现了害羞的苦力怕！', '你找到了隐藏的彩蛋！');
-                
+
                 creeper.style.animation = 'creeperCelebrate 0.5s ease-out';
                 setTimeout(() => {
                     creeper.style.animation = '';
                 }, 500);
-                
+
                 launchFireworks();
                 launchFireworks();
             } catch (error) {
@@ -607,29 +674,33 @@ function initPixelCake() {
         const candle = document.getElementById('cakeCandle');
         const flame = candle.querySelector('.candle-flame');
         const hint = document.querySelector('.candle-hint');
-        
+
         if (!blowBtn || !candle || !flame || !hint) {
             console.error('吹蜡烛功能：缺少必要元素');
             return;
         }
-        
+
         let isBlown = false;
-        
+
         blowBtn.addEventListener('click', () => {
             try {
+                buttonClickFeedback(blowBtn);
+
                 if (isBlown) {
                     flame.classList.remove('blown');
                     isBlown = false;
                     blowBtn.textContent = '吹蜡烛 🎂';
                     hint.classList.remove('hidden');
+                    showToast('🔥 蜡烛已点燃', 'info');
                 } else {
                     flame.classList.add('blown');
                     isBlown = true;
                     blowBtn.textContent = '点燃蜡烛 🔥';
                     hint.classList.add('hidden');
-                    
+                    showToast('🎂 蜡烛已吹灭！许个愿吧！', 'success');
+
                     playSound('experience');
-                    
+
                     setTimeout(() => {
                         launchFireworks();
                         launchFireworks();
@@ -711,21 +782,23 @@ function initBlessingGenerator() {
         do {
             newIndex = Math.floor(Math.random() * blessings.length);
         } while (newIndex === lastIndex && blessings.length > 1);
-        
+
         lastIndex = newIndex;
-        
+
         textElement.style.transform = 'scale(0)';
         textElement.style.opacity = '0';
-        
+
         setTimeout(() => {
             textElement.textContent = blessings[newIndex];
             textElement.style.transform = 'scale(1)';
             textElement.style.opacity = '1';
         }, 200);
-        
+
         playSound('experience');
         createSparkles(btn);
-        
+        buttonClickFeedback(btn);
+        showToast('✨ 获得新祝福！', 'success');
+
         unlockAchievement('blessing', '📜 祝福收集者', '获取了神秘祝福！');
     });
 }
@@ -763,6 +836,7 @@ function initCountdown() {
     creeperAvatar.addEventListener('click', () => {
         playSound('creeper');
         createExplosion(creeperAvatar);
+        showToast('💥 苦力怕发怒了！', 'warning');
         unlockAchievement('creeper', '💥 苦力怕好友', '点击了苦力怕！');
     });
     
@@ -853,31 +927,51 @@ function initMiningGame() {
             startGame();
         }
     });
-    
+
     function startGame() {
         gameActive = true;
         score = 0;
         scoreDisplay.textContent = score;
         startBtn.textContent = '停止游戏';
         miningArea.innerHTML = '';
-        
+        buttonClickFeedback(startBtn);
+        showToast('⛏️ 挖矿游戏开始！30秒倒计时！', 'success');
+
         spawnBlock();
         blockInterval = setInterval(spawnBlock, 1500);
-        
+
+        // 添加倒计时提醒
+        let timeLeft = 30;
+        const countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft === 20) {
+                showToast('⏰ 还剩20秒！', 'info');
+            } else if (timeLeft === 10) {
+                showToast('⏰ 还剩10秒！快点挖！', 'warning');
+            } else if (timeLeft === 5) {
+                showToast('⏰ 最后5秒！！！', 'warning');
+            }
+        }, 1000);
+
         setTimeout(() => {
+            clearInterval(countdownInterval);
             if (gameActive) {
                 stopGame();
                 if (score >= 50) {
+                    showToast('🏆 挖矿大师！得分：' + score, 'success');
                     unlockAchievement('mining_master', '⛏️ 挖矿大师', '挖矿游戏得分超过50！');
+                } else {
+                    showToast('⛏️ 游戏结束！得分：' + score, 'info');
                 }
             }
         }, 30000);
     }
-    
+
     function stopGame() {
         gameActive = false;
         startBtn.textContent = '开始游戏';
         clearInterval(blockInterval);
+        buttonClickFeedback(startBtn);
     }
     
     function spawnBlock() {
@@ -1027,14 +1121,15 @@ function initVillagerNPC() {
                 const message = messages[Math.floor(Math.random() * messages.length)];
                 bubble.textContent = message;
                 bubble.classList.add('show');
-                
+
                 playSound('villager');
-                
+                showToast('🧑‍🌾 ' + message, 'info');
+
                 clearTimeout(bubbleTimeout);
                 bubbleTimeout = setTimeout(() => {
                     bubble.classList.remove('show');
                 }, 3000);
-                
+
                 unlockAchievement('villager', '🧑‍🌾 村民朋友', '和村民NPC互动了！');
             } catch (error) {
                 console.error('村民NPC点击功能错误:', error);
