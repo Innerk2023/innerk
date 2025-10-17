@@ -955,120 +955,6 @@ body {
     display: none;
 }
 
-.countdown-section {
-    margin: 50px 0;
-    padding: 30px 20px;
-}
-
-.creeper-countdown {
-    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
-    border: 8px solid #2E7D32;
-    border-radius: 20px;
-    padding: 40px 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.creeper-avatar {
-    width: 120px;
-    height: 150px;
-    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-    border: 6px solid #1B5E20;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    animation: creepBounce 2s ease-in-out infinite;
-}
-
-@keyframes creepBounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-.creeper-avatar:hover {
-    transform: scale(1.1);
-}
-
-.creeper-face {
-    width: 80%;
-    height: 80%;
-}
-
-.creeper-eyes {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 10px;
-}
-
-.eye {
-    width: 20px;
-    height: 25px;
-    background: #000;
-}
-
-.creeper-mouth {
-    width: 40px;
-    height: 50px;
-    background: #000;
-    margin: 10px auto;
-    clip-path: polygon(30% 0%, 70% 0%, 70% 40%, 100% 40%, 100% 60%, 70% 60%, 70% 100%, 30% 100%, 30% 60%, 0% 60%, 0% 40%, 30% 40%);
-}
-
-.countdown-info {
-    text-align: center;
-    width: 100%;
-}
-
-.countdown-title {
-    font-size: 2em;
-    color: #FFF;
-    text-shadow: 4px 4px 0px #000;
-    margin-bottom: 20px;
-}
-
-.countdown-display {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.countdown-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(0,0,0,0.3);
-    padding: 15px;
-    border-radius: 10px;
-    min-width: 70px;
-}
-
-.countdown-value {
-    font-size: 2.5em;
-    font-weight: bold;
-    color: #FFD700;
-    text-shadow: 3px 3px 0px #000;
-}
-
-.countdown-label {
-    font-size: 1em;
-    color: #FFF;
-    text-shadow: 2px 2px 0px #000;
-    margin-top: 5px;
-}
-
 .mining-game {
     margin: 50px 0;
     padding: 30px 20px;
@@ -1720,14 +1606,6 @@ body {
         gap: 20px;
     }
 
-    .countdown-display {
-        gap: 10px;
-    }
-
-    .countdown-value {
-        font-size: 2em;
-    }
-
     .villager-npc {
         bottom: 20px;
         left: 20px;
@@ -1852,15 +1730,6 @@ body {
         border: 4px solid #000;
     }
 
-    .countdown-item {
-        min-width: 60px;
-        padding: 10px;
-    }
-
-    .countdown-value {
-        font-size: 1.8em;
-    }
-
     .cake-layer {
         width: 120px;
         height: 35px;
@@ -1964,7 +1833,6 @@ body {
         margin-bottom: 20px;
     }
 
-    .countdown-section,
     .mining-game,
     .cake-building {
         padding: 20px 15px;

@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
         initPortalEffect();
         initSoundToggle();
         initBlessingGenerator();
-        initCountdown();
         initMiningGame();
         initCakeBuilding();
         initVillagerNPC();
@@ -801,99 +800,6 @@ function initBlessingGenerator() {
 
         unlockAchievement('blessing', '📜 祝福收集者', '获取了神秘祝福！');
     });
-}
-
-function initCountdown() {
-    const birthday = new Date('2025-01-01T00:00:00');
-    const creeperAvatar = document.getElementById('creeperAvatar');
-    
-    function updateCountdown() {
-        const now = new Date();
-        const diff = birthday - now;
-        
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        document.getElementById('days').textContent = Math.abs(days);
-        document.getElementById('hours').textContent = Math.abs(hours);
-        document.getElementById('minutes').textContent = Math.abs(minutes);
-        document.getElementById('seconds').textContent = Math.abs(seconds);
-        
-        if (diff < 0) {
-            document.querySelector('.countdown-title').textContent = '生日已经过去';
-        }
-        
-        if (Math.abs(days) === 0 && Math.abs(hours) === 0 && Math.abs(minutes) === 0) {
-            creeperAvatar.style.animation = 'creepShake 0.5s infinite';
-        }
-    }
-    
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-    
-    creeperAvatar.addEventListener('click', () => {
-        playSound('creeper');
-        createExplosion(creeperAvatar);
-        showToast('💥 苦力怕发怒了！', 'warning');
-        unlockAchievement('creeper', '💥 苦力怕好友', '点击了苦力怕！');
-    });
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes creepShake {
-            0%, 100% { transform: translateX(0) translateY(0); }
-            25% { transform: translateX(-5px) translateY(-5px); }
-            75% { transform: translateX(5px) translateY(5px); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-function createExplosion(element) {
-    const rect = element.getBoundingClientRect();
-    const explosionEmojis = ['💥', '💨', '✨', '⚡', '🔥'];
-    
-    explosionEmojis.forEach((emoji, index) => {
-        const explosion = document.createElement('div');
-        explosion.textContent = emoji;
-        explosion.style.cssText = `
-            position: fixed;
-            left: ${rect.left + rect.width / 2}px;
-            top: ${rect.top + rect.height / 2}px;
-            font-size: 3em;
-            pointer-events: none;
-            z-index: 9999;
-            animation: explosionAnim 1s ease-out forwards;
-            animation-delay: ${index * 0.1}s;
-        `;
-        
-        document.body.appendChild(explosion);
-        setTimeout(() => explosion.remove(), 1500);
-    });
-    
-    if (!document.getElementById('explosion-style')) {
-        const style = document.createElement('style');
-        style.id = 'explosion-style';
-        style.textContent = `
-            @keyframes explosionAnim {
-                0% {
-                    opacity: 1;
-                    transform: scale(0);
-                }
-                50% {
-                    opacity: 1;
-                    transform: scale(1.5);
-                }
-                100% {
-                    opacity: 0;
-                    transform: scale(3);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
 }
 
 function initMiningGame() {
