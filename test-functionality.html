@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2E5C8A;
+            text-align: center;
+        }
+        h2 {
+            color: #4A90E2;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .test-item input[type="checkbox"] {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+        }
+        .test-item label {
+            flex: 1;
+            cursor: pointer;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .status {
+            text-align: center;
+            font-size: 18px;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 生日网站功能测试清单</h1>
+    
+    <div class="test-section">
+        <h2>🎆 烟花系统测试</h2>
+        <div class="test-item">
+            <input type="checkbox" id="test-fireworks-desktop">
+            <label for="test-fireworks-desktop">电脑端：烟花在3-5秒内完全消失</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-fireworks-mobile">
+            <label for="test-fireworks-mobile">手机端：烟花正常消失</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-fireworks-no-block">
+            <label for="test-fireworks-no-block">烟花不遮挡其他元素的点击</label>
+        </div>
+        <button class="test-button" onclick="window.open('index.html', '_blank')">打开网站测试</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🕯️ 核心功能测试</h2>
+        <div class="test-item">
+            <input type="checkbox" id="test-candle">
+            <label for="test-candle">吹蜡烛功能正常工作</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-pixelate">
+            <label for="test-pixelate">照片像素化切换正常</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-cake-building">
+            <label for="test-cake-building">叠蛋糕游戏正常工作</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-mining">
+            <label for="test-mining">挖方块游戏正常工作</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-creeper">
+            <label for="test-creeper">点击苦力怕有反应和成就</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-villager">
+            <label for="test-villager">点击村民有反应和祝福</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-blocks">
+            <label for="test-blocks">点击方块显示消息</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-achievement">
+            <label for="test-achievement">成就弹窗正常显示</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-sound">
+            <label for="test-sound">所有音效正常播放</label>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📱 跨平台测试</h2>
+        <div class="test-item">
+            <input type="checkbox" id="test-desktop">
+            <label for="test-desktop">桌面浏览器所有功能正常</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-mobile-touch">
+            <label for="test-mobile-touch">移动端触摸交互正常</label>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" id="test-no-errors">
+            <label for="test-no-errors">控制台无JavaScript错误</label>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试结果</h2>
+        <div id="test-status" class="status">请完成上述测试项目</div>
+        <button class="test-button" onclick="calculateResults()">计算测试结果</button>
+    </div>
+
+    <script>
+        function calculateResults() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const total = checkboxes.length;
+            let passed = 0;
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) passed++;
+            });
+            
+            const percentage = Math.round((passed / total) * 100);
+            const statusDiv = document.getElementById('test-status');
+            
+            if (percentage === 100) {
+                statusDiv.className = 'status pass';
+                statusDiv.innerHTML = `✅ 完美！所有 ${total} 项测试全部通过！<br>网站功能完全正常！`;
+            } else if (percentage >= 80) {
+                statusDiv.className = 'status pass';
+                statusDiv.innerHTML = `✅ 很好！通过 ${passed}/${total} 项测试 (${percentage}%)<br>网站基本功能正常`;
+            } else {
+                statusDiv.className = 'status fail';
+                statusDiv.innerHTML = `⚠️ 需要改进：通过 ${passed}/${total} 项测试 (${percentage}%)<br>请检查失败的功能`;
+            }
+        }
+        
+        // 自动保存测试状态
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                localStorage.setItem(cb.id, cb.checked);
+            });
+            
+            // 恢复之前的测试状态
+            const saved = localStorage.getItem(cb.id);
+            if (saved === 'true') {
+                cb.checked = true;
+            }
+        });
+    </script>
+</body>
+</html>
