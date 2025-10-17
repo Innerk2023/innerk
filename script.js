@@ -1,8 +1,12 @@
 let soundEnabled = true;
 let audioContext = null;
 const achievements = new Set(JSON.parse(localStorage.getItem('chenle_achievements') || '[]'));
+let miningBlocksDestroyed = 0;
+let photosViewed = new Set();
+let hasShownWelcomeTip = localStorage.getItem('chenle_welcome_tip_shown') === 'true';
 
 document.addEventListener('DOMContentLoaded', function() {
+    initLoadingScreen();
     initAudioContext();
     init3DFloatingBlocks();
     initFireworks();
@@ -15,20 +19,45 @@ document.addEventListener('DOMContentLoaded', function() {
     initVillagerNPC();
     initBlockInteraction();
     initPhotoPixelate();
-    
-    setTimeout(() => {
-        launchFireworks();
-        unlockAchievement('welcome', '🎉 欢迎！', '参加刘宸乐的5岁生日会！');
-        playSound('portal');
-    }, 1000);
-    
-    document.getElementById('mainBanner').addEventListener('click', () => {
-        launchFireworks();
-        playSound('experience');
-    });
+    initPhotoGestures();
+    initHiddenCreeper();
+    initPixelCake();
+    initPhotoModal();
     
     console.log('%c🎉 生日快乐，刘宸乐！🎉', 'font-size: 30px; color: #FFD700; text-shadow: 2px 2px 4px #000;');
 });
+
+function initLoadingScreen() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const welcomeTip = document.getElementById('welcomeTip');
+    
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+            
+            setTimeout(() => {
+                launchFireworks();
+                unlockAchievement('welcome', '🎉 欢迎！', '参加刘宸乐的5岁生日会！');
+                playSound('portal');
+                
+                if (!hasShownWelcomeTip) {
+                    setTimeout(() => {
+                        welcomeTip.classList.add('show');
+                        setTimeout(() => {
+                            welcomeTip.classList.remove('show');
+                            localStorage.setItem('chenle_welcome_tip_shown', 'true');
+                        }, 3000);
+                    }, 500);
+                }
+            }, 500);
+            
+            document.getElementById('mainBanner').addEventListener('click', () => {
+                launchFireworks();
+                playSound('experience');
+            });
+        }, 1500);
+    });
+}
 
 function initAudioContext() {
     if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
@@ -285,12 +314,257 @@ function initPhotoPixelate() {
     prevBtn.addEventListener('click', () => {
         playSound('portal');
         launchFireworks();
+        photosViewed.add('prev');
+        checkPhotoExplorer();
     });
     
     nextBtn.addEventListener('click', () => {
         playSound('portal');
         launchFireworks();
+        photosViewed.add('next');
+        checkPhotoExplorer();
     });
+}
+
+function checkPhotoExplorer() {
+    if (photosViewed.size >= 3) {
+        unlockAchievement('explorer', '🗺️ 探险家', '浏览了所有照片！');
+    }
+}
+
+function initPhotoGestures() {
+    const photoWrapper = document.getElementById('photoWrapper');
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let lastTapTime = 0;
+    
+    photoWrapper.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+    }, { passive: true });
+    
+    photoWrapper.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchEndTime = Date.now();
+        
+        const diffX = touchStartX - touchEndX;
+        const diffY = touchStartY - touchEndY;
+        const timeDiff = touchEndTime - touchStartTime;
+        
+        if (timeDiff < 300 && Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+            const currentTime = Date.now();
+            if (currentTime - lastTapTime < 300) {
+                openPhotoModal();
+            }
+            lastTapTime = currentTime;
+        }
+        
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            if (diffX > 0) {
+                document.getElementById('photoNext').click();
+            } else {
+                document.getElementById('photoPrev').click();
+            }
+        }
+    }, { passive: true });
+}
+
+function initPhotoModal() {
+    const modal = document.getElementById('photoModal');
+    const modalPhoto = document.getElementById('modalPhoto');
+    const modalClose = document.getElementById('modalClose');
+    const mainPhoto = document.getElementById('mainPhoto');
+    
+    modalClose.addEventListener('click', closePhotoModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closePhotoModal();
+        }
+    });
+}
+
+function openPhotoModal() {
+    const modal = document.getElementById('photoModal');
+    const modalPhoto = document.getElementById('modalPhoto');
+    const mainPhoto = document.getElementById('mainPhoto');
+    
+    modalPhoto.src = mainPhoto.src;
+    modal.classList.add('show');
+    playSound('portal');
+}
+
+function closePhotoModal() {
+    const modal = document.getElementById('photoModal');
+    modal.classList.remove('show');
+}
+
+function initHiddenCreeper() {
+    const creeper = document.getElementById('hiddenCreeper');
+    
+    const positions = [
+        { top: '80px', left: '20px' },
+        { top: '80px', right: '100px' },
+        { bottom: '150px', left: '30px' },
+        { bottom: '150px', right: '30px' },
+        { top: '300px', left: '15px' },
+        { top: '300px', right: '15px' }
+    ];
+    
+    const randomPos = positions[Math.floor(Math.random() * positions.length)];
+    Object.keys(randomPos).forEach(key => {
+        creeper.style[key] = randomPos[key];
+    });
+    
+    creeper.addEventListener('click', () => {
+        playSound('creeper');
+        createMegaExplosion(creeper);
+        unlockAchievement('hidden_creeper', '💚 发现了害羞的苦力怕！', '你找到了隐藏的彩蛋！');
+        
+        creeper.style.animation = 'creeperCelebrate 0.5s ease-out';
+        setTimeout(() => {
+            creeper.style.animation = '';
+        }, 500);
+        
+        launchFireworks();
+        launchFireworks();
+    });
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes creeperCelebrate {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-15deg) scale(1.2); }
+            75% { transform: rotate(15deg) scale(1.2); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function createMegaExplosion(element) {
+    const rect = element.getBoundingClientRect();
+    const emojis = ['💚', '💥', '✨', '⭐', '🎉', '🎊', '💎', '🎁', '🌟', '⚡', '💫'];
+    
+    for (let i = 0; i < 20; i++) {
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        const explosion = document.createElement('div');
+        explosion.textContent = emoji;
+        
+        const angle = (Math.PI * 2 * i) / 20;
+        const distance = 150 + Math.random() * 100;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        explosion.style.cssText = `
+            position: fixed;
+            left: ${rect.left + rect.width / 2}px;
+            top: ${rect.top + rect.height / 2}px;
+            font-size: ${2 + Math.random() * 2}em;
+            pointer-events: none;
+            z-index: 9999;
+            animation: megaExplosionAnim 1.5s ease-out forwards;
+        `;
+        
+        explosion.style.setProperty('--tx', `${tx}px`);
+        explosion.style.setProperty('--ty', `${ty}px`);
+        
+        document.body.appendChild(explosion);
+        setTimeout(() => explosion.remove(), 1500);
+    }
+    
+    if (!document.getElementById('mega-explosion-style')) {
+        const style = document.createElement('style');
+        style.id = 'mega-explosion-style';
+        style.textContent = `
+            @keyframes megaExplosionAnim {
+                0% {
+                    opacity: 1;
+                    transform: translate(0, 0) scale(0) rotate(0deg);
+                }
+                50% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+function initPixelCake() {
+    const blowBtn = document.getElementById('blowCandleBtn');
+    const candle = document.getElementById('cakeCandle');
+    const flame = candle.querySelector('.candle-flame');
+    const hint = document.querySelector('.candle-hint');
+    let isBlown = false;
+    
+    blowBtn.addEventListener('click', () => {
+        if (isBlown) {
+            flame.classList.remove('blown');
+            isBlown = false;
+            blowBtn.textContent = '吹蜡烛 🎂';
+            hint.classList.remove('hidden');
+        } else {
+            flame.classList.add('blown');
+            isBlown = true;
+            blowBtn.textContent = '点燃蜡烛 🔥';
+            hint.classList.add('hidden');
+            
+            playSound('experience');
+            
+            setTimeout(() => {
+                launchFireworks();
+                launchFireworks();
+                createConfetti();
+                unlockAchievement('cake_blown', '🎂 许愿成功', '吹灭了生日蜡烛！');
+            }, 300);
+        }
+    });
+}
+
+function createConfetti() {
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD700', '#FF69B4', '#7CB342'];
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `
+            position: fixed;
+            left: ${Math.random() * 100}vw;
+            top: -20px;
+            width: 10px;
+            height: 10px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            animation: confettiFall ${2 + Math.random() * 2}s linear forwards;
+            z-index: 9999;
+            transform: rotate(${Math.random() * 360}deg);
+        `;
+        
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 4000);
+    }
+    
+    if (!document.getElementById('confetti-style')) {
+        const style = document.createElement('style');
+        style.id = 'confetti-style';
+        style.textContent = `
+            @keyframes confettiFall {
+                0% {
+                    transform: translateY(0) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 function initBlessingGenerator() {
@@ -499,6 +773,11 @@ function initMiningGame() {
             
             score += blockType.points;
             scoreDisplay.textContent = score;
+            
+            miningBlocksDestroyed++;
+            if (miningBlocksDestroyed >= 10) {
+                unlockAchievement('mining_expert', '⛏️ 挖矿达人', '挖掘了10个方块！');
+            }
             
             block.classList.add('breaking');
             playSound('break');

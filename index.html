@@ -7,6 +7,39 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- 加载界面 -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="minecraft-loader">
+                <div class="loader-block"></div>
+                <div class="loader-block"></div>
+                <div class="loader-block"></div>
+                <div class="loader-block"></div>
+            </div>
+            <div class="loading-text">加载中...</div>
+            <div class="loading-subtitle">准备进入宸乐的生日世界</div>
+        </div>
+    </div>
+
+    <!-- 首次访问引导 -->
+    <div id="welcomeTip" class="welcome-tip">
+        <div class="tip-content">
+            <span class="tip-emoji">👆</span>
+            <span class="tip-text">点击方块试试！</span>
+        </div>
+    </div>
+
+    <!-- 隐藏的苦力怕彩蛋 -->
+    <div id="hiddenCreeper" class="hidden-creeper">
+        <div class="creeper-face-mini">
+            <div class="creeper-eyes-mini">
+                <div class="eye-mini"></div>
+                <div class="eye-mini"></div>
+            </div>
+            <div class="creeper-mouth-mini"></div>
+        </div>
+    </div>
+
     <!-- 音效控制按钮 -->
     <button id="soundToggle" class="sound-toggle" aria-label="音效开关">
         <span class="sound-icon">🔊</span>
@@ -17,6 +50,12 @@
 
     <!-- 烟花画布 -->
     <canvas id="fireworksCanvas" class="fireworks-canvas"></canvas>
+
+    <!-- 照片全屏查看模态框 -->
+    <div id="photoModal" class="photo-modal">
+        <div class="modal-close" id="modalClose">✕</div>
+        <img id="modalPhoto" class="modal-photo" alt="照片">
+    </div>
 
     <!-- 3D浮动方块背景 -->
     <div class="floating-blocks-3d"></div>
@@ -47,6 +86,24 @@
                     <button class="photo-nav photo-prev" id="photoPrev">◀</button>
                     <button class="photo-nav photo-next" id="photoNext">▶</button>
                 </div>
+            </div>
+        </section>
+
+        <!-- 像素化生日蛋糕动画 -->
+        <section class="pixel-cake-section">
+            <h2 class="section-title">生日蛋糕</h2>
+            <div class="pixel-cake-container" id="pixelCakeContainer">
+                <div class="pixel-cake">
+                    <div class="cake-tier tier-3"></div>
+                    <div class="cake-tier tier-2"></div>
+                    <div class="cake-tier tier-1"></div>
+                    <div class="cake-candle" id="cakeCandle">
+                        <div class="candle-stick"></div>
+                        <div class="candle-flame"></div>
+                    </div>
+                </div>
+                <button class="minecraft-btn blow-candle-btn" id="blowCandleBtn">吹蜡烛 🎂</button>
+                <div class="candle-hint">点击吹灭蜡烛！</div>
             </div>
         </section>
 
