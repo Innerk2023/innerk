@@ -2,18 +2,29 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>刘宸乐5岁生日快乐 - 我的世界</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- 背景方块动画 -->
-    <div class="floating-blocks"></div>
+    <!-- 音效控制按钮 -->
+    <button id="soundToggle" class="sound-toggle" aria-label="音效开关">
+        <span class="sound-icon">🔊</span>
+    </button>
+
+    <!-- 成就通知容器 -->
+    <div id="achievementContainer" class="achievement-container"></div>
+
+    <!-- 烟花画布 -->
+    <canvas id="fireworksCanvas" class="fireworks-canvas"></canvas>
+
+    <!-- 3D浮动方块背景 -->
+    <div class="floating-blocks-3d"></div>
     
     <!-- 主容器 -->
     <div class="container">
         <!-- 顶部横幅 -->
-        <header class="banner">
+        <header class="banner" id="mainBanner">
             <div class="minecraft-title">
                 <h1 class="pixel-text">生日快乐！</h1>
                 <h2 class="birthday-name">刘宸乐</h2>
@@ -24,13 +35,120 @@
             </div>
         </header>
 
-        <!-- 照片展示区 -->
-        <section class="photo-section">
+        <!-- 照片展示区（传送门效果） -->
+        <section class="photo-section" id="photoSection">
             <div class="photo-frame minecraft-block">
- <div class="photo-placeholder">
-    <img src="chenle.jpg" alt="宸乐的5岁生日照片" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-</div>
+                <div class="portal-container">
+                    <canvas id="portalCanvas" class="portal-canvas"></canvas>
+                    <div class="photo-wrapper" id="photoWrapper">
+                        <img src="chenle.jpg" alt="宸乐的5岁生日照片" class="main-photo" id="mainPhoto">
+                        <button class="pixelate-btn" id="pixelateBtn">像素化</button>
+                    </div>
+                    <button class="photo-nav photo-prev" id="photoPrev">◀</button>
+                    <button class="photo-nav photo-next" id="photoNext">▶</button>
+                </div>
             </div>
+        </section>
+
+        <!-- 动态祝福语生成器 -->
+        <section class="blessing-generator">
+            <div class="blessing-box">
+                <div class="blessing-text" id="blessingText">愿你的生命值永远满格！❤️❤️❤️</div>
+                <button class="minecraft-btn" id="generateBlessing">获取新祝福</button>
+            </div>
+        </section>
+
+        <!-- 苦力怕倒计时 -->
+        <section class="countdown-section">
+            <div class="creeper-countdown">
+                <div class="creeper-avatar" id="creeperAvatar">
+                    <div class="creeper-face">
+                        <div class="creeper-eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                        <div class="creeper-mouth"></div>
+                    </div>
+                </div>
+                <div class="countdown-info">
+                    <h3 class="countdown-title">距离生日</h3>
+                    <div class="countdown-display" id="countdownDisplay">
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="days">0</span>
+                            <span class="countdown-label">天</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="hours">0</span>
+                            <span class="countdown-label">时</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="minutes">0</span>
+                            <span class="countdown-label">分</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-value" id="seconds">0</span>
+                            <span class="countdown-label">秒</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 挖方块小游戏 -->
+        <section class="mining-game">
+            <h2 class="section-title">挖方块小游戏</h2>
+            <div class="game-info">
+                <span class="score-display">得分: <span id="miningScore">0</span></span>
+                <button class="minecraft-btn" id="startMining">开始游戏</button>
+            </div>
+            <div class="mining-area" id="miningArea"></div>
+        </section>
+
+        <!-- 建造蛋糕游戏 -->
+        <section class="cake-building">
+            <h2 class="section-title">建造生日蛋糕</h2>
+            <div class="cake-container" id="cakeContainer">
+                <div class="cake-display" id="cakeDisplay"></div>
+                <div class="cake-blocks">
+                    <button class="cake-block-btn" data-layer="1">🟫</button>
+                    <button class="cake-block-btn" data-layer="2">🟨</button>
+                    <button class="cake-block-btn" data-layer="3">🟥</button>
+                    <button class="cake-block-btn candle">🕯️</button>
+                </div>
+                <button class="minecraft-btn" id="resetCake">重置蛋糕</button>
+            </div>
+        </section>
+
+        <!-- 村民NPC -->
+        <div class="villager-npc" id="villagerNpc">
+            <div class="villager-avatar">
+                <div class="villager-head">
+                    <div class="villager-face">
+                        <div class="villager-eyes">
+                            <div class="villager-eye"></div>
+                            <div class="villager-eye"></div>
+                        </div>
+                        <div class="villager-nose"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="villager-bubble" id="villagerBubble"></div>
+        </div>
+
+        <!-- 互动方块区 -->
+        <section class="interactive-section">
+            <h2 class="section-title">点击方块，发现惊喜！</h2>
+            <div class="block-grid">
+                <div class="minecraft-cube grass" data-message="🌱 种下快乐的种子！"></div>
+                <div class="minecraft-cube dirt" data-message="⛏️ 挖掘冒险的宝藏！"></div>
+                <div class="minecraft-cube stone" data-message="🪨 坚强勇敢的小勇士！"></div>
+                <div class="minecraft-cube diamond" data-message="💎 闪耀如钻石的宸乐！"></div>
+                <div class="minecraft-cube tnt" data-message="💥 爆炸般的快乐！"></div>
+                <div class="minecraft-cube gold" data-message="✨ 金色的童年时光！"></div>
+                <div class="minecraft-cube emerald" data-message="🍀 幸运的5岁！"></div>
+                <div class="minecraft-cube redstone" data-message="⚡ 充满能量的一天！"></div>
+            </div>
+            <div class="message-display" id="messageDisplay"></div>
         </section>
 
         <!-- 生日信息卡片 -->
@@ -55,36 +173,6 @@
                 <p>准备好收到</p>
                 <p>神秘礼物了吗？</p>
             </div>
-        </section>
-
-        <!-- 互动方块区 -->
-        <section class="interactive-section">
-            <h2 class="section-title">点击方块，发现惊喜！</h2>
-            <div class="block-grid">
-                <div class="minecraft-cube grass" data-message="🌱 种下快乐的种子！"></div>
-                <div class="minecraft-cube dirt" data-message="⛏️ 挖掘冒险的宝藏！"></div>
-                <div class="minecraft-cube stone" data-message="🪨 坚强勇敢的小勇士！"></div>
-                <div class="minecraft-cube diamond" data-message="💎 闪耀如钻石的宸乐！"></div>
-                <div class="minecraft-cube tnt" data-message="💥 爆炸般的快乐！"></div>
-                <div class="minecraft-cube gold" data-message="✨ 金色的童年时光！"></div>
-                <div class="minecraft-cube emerald" data-message="🍀 幸运的5岁！"></div>
-                <div class="minecraft-cube redstone" data-message="⚡ 充满能量的一天！"></div>
-            </div>
-            <div class="message-display" id="messageDisplay"></div>
-        </section>
-
-        <!-- Creeper 装饰 -->
-        <section class="creeper-section">
-            <div class="creeper">
-                <div class="creeper-face">
-                    <div class="creeper-eyes">
-                        <div class="eye"></div>
-                        <div class="eye"></div>
-                    </div>
-                    <div class="creeper-mouth"></div>
-                </div>
-            </div>
-            <p class="creeper-text">嘶嘶嘶...祝你生日快乐！</p>
         </section>
 
         <!-- 生日祝福区 -->
